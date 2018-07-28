@@ -4,13 +4,13 @@ pub mod prelude {
         port: i32,
     }
     impl Server {
-        fn new (host: &str, port: &i32) -> Server {
+        pub fn new (host: &str, port: &i32) -> Server {
             Server{
                 host: host.to_string(),
                 port: *port
             }
         }
-        fn start(&self) {
+        pub fn start(&self) {
             println!("Starting server at {}:{}", self.host, self.port);
         }
     }
