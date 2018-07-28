@@ -12,7 +12,7 @@ pub mod prelude {
             }
         }
         pub fn start(&self) {
-            let addr = self.host.to_string() + &self.port.to_string();
+            let addr = format!("{}:{}", self.host, self.port);
             let listener = TcpListener::bind(addr).unwrap();
             for stream in listener.incoming() {
                 stream.unwrap();
