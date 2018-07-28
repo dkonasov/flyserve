@@ -2,6 +2,8 @@ pub mod prelude {
     use std::io::prelude::*;
     use std::net::TcpStream;
     use std::net::TcpListener;
+    use std::thread;
+
     pub struct Server {
         host: String,
         port: i32,
@@ -17,11 +19,12 @@ pub mod prelude {
             let addr = format!("{}:{}", self.host, self.port);
             let listener = TcpListener::bind(addr).unwrap();
             for stream in listener.incoming() {
-                self.handle_stream(stream.unwrap());
+                thread::spawn(|| {
+                    Server::handle_stream(stream.unwrap());
+                });
             }
-            println!("Starting server at {}:{}", self.host, self.port);
         }
-        fn handle_stream(&self, mut stream: TcpStream) {
+        fn handle_stream(mut stream: TcpStream) {
             let mut buffer = [0; 512];
             stream.read(&mut buffer).unwrap();
             let response = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
