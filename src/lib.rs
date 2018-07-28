@@ -1,4 +1,4 @@
-mod prelude {
+pub mod prelude {
     pub struct Server {
         host: String,
         port: i32,
