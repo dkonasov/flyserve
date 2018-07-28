@@ -1,5 +1,5 @@
-mod flyserve {
-    struct Server {
+mod prelude {
+    pub struct Server {
         host: String,
         port: i32,
     }
