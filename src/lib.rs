@@ -1,4 +1,5 @@
 pub mod prelude {
+    use std::net::TcpListener;
     pub struct Server {
         host: String,
         port: i32,
@@ -11,6 +12,12 @@ pub mod prelude {
             }
         }
         pub fn start(&self) {
+            let addr = self.host.to_string() + &self.port.to_string();
+            let listener = TcpListener::bind(addr).unwrap();
+            for stream in listener.incoming() {
+                stream.unwrap();
+                println!("Connection established!");
+            }
             println!("Starting server at {}:{}", self.host, self.port);
         }
     }
