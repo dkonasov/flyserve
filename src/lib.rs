@@ -25,8 +25,8 @@ pub mod prelude {
             }
         }
         fn handle_stream(mut stream: TcpStream) {
-            let mut buffer = [0; 512];
-            stream.read(&mut buffer).unwrap();
+            let mut buffer = Vec::new();
+            stream.read_to_end(&mut buffer).unwrap();
             let response = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
             stream.write(response.as_bytes()).unwrap();
             stream.flush().unwrap();
