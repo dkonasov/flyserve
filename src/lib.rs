@@ -1,18 +1,34 @@
 pub mod prelude {
+    extern crate flyserve_api;
+    use std::collections::HashMap;
     use std::io::prelude::*;
     use std::net::TcpStream;
     use std::net::TcpListener;
     use std::thread;
+    use self::flyserve_api::*;
 
-    pub struct Server {
+    struct Route<'a> {
+        pattern: String,
+        handlers: Vec<&'a Fn(&mut HttpRequest, &mut HttpResponse)>
+    }
+
+    impl<'a> Route<'a> {
+        pub fn compare(&self, path: &Path) -> Option<HashMap<String, String>> {
+            return path.compare(&self.pattern);
+        }
+    }
+
+    pub struct Server<'a> {
         host: String,
         port: i32,
+        routes: Vec<Route<'a>>
     }
-    impl Server {
-        pub fn new (host: &str, port: &i32) -> Server {
-            Server{
+    impl<'a> Server<'a> {
+        pub fn new (host: &str, port: &i32) -> Server<'a> {
+            Server {
                 host: host.to_string(),
-                port: *port
+                port: *port,
+                routes: Vec::new()
             }
         }
         pub fn start(&self) {
