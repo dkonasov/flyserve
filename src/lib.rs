@@ -6,7 +6,7 @@ pub mod prelude {
     use std::net::TcpListener;
     use std::thread;
     use self::flyserve_api::*;
-
+    
     struct Route<'a> {
         pattern: String,
         handlers: Vec<&'a Fn(&mut HttpRequest, &mut HttpResponse)>
@@ -16,8 +16,11 @@ pub mod prelude {
         pub fn compare(&self, path: &Path) -> Option<HashMap<String, String>> {
             return path.compare(&self.pattern);
         }
+        pub fn add_handler(&mut self, handler: &'a Fn(&mut HttpRequest, &mut HttpResponse)) {
+            self.handlers.push(handler);
+        }
     }
-
+    
     pub struct Server<'a> {
         host: String,
         port: i32,
@@ -39,6 +42,16 @@ pub mod prelude {
                     Server::handle_stream(stream.unwrap());
                 });
             }
+        }
+        pub fn add_route(&mut self, pattern: &str, handler: &'a Fn(&mut HttpRequest, &mut HttpResponse)) {
+            let pattern = pattern.to_owned();
+            if !self.routes.iter().any(|el| { el.pattern == pattern}) {
+                self.routes.push(Route {
+                    pattern: pattern.clone(),
+                    handlers: Vec::new()
+                });
+            }
+            self.routes.iter_mut().find(|el| { el.pattern == pattern}).unwrap().add_handler(handler);
         }
         fn handle_stream(mut stream: TcpStream) {
             let mut buffer = Vec::new();
