@@ -7,27 +7,27 @@ pub mod prelude {
     use std::thread;
     use self::flyserve_api::*;
     
-    struct Route<'a> {
+    struct Route {
         pattern: String,
-        handlers: Vec<&'a Fn(&mut HttpRequest, &mut HttpResponse)>
+        handlers: Vec<Box<Fn(&mut HttpRequest, &mut HttpResponse)>>
     }
 
-    impl<'a> Route<'a> {
+    impl Route {
         pub fn compare(&self, path: &Path) -> Option<HashMap<String, String>> {
             return path.compare(&self.pattern);
         }
-        pub fn add_handler(&mut self, handler: &'a Fn(&mut HttpRequest, &mut HttpResponse)) {
+        pub fn add_handler(&mut self, handler: Box<Fn(&mut HttpRequest, &mut HttpResponse)>) {
             self.handlers.push(handler);
         }
     }
     
-    pub struct Server<'a> {
+    pub struct Server {
         host: String,
         port: i32,
-        routes: Vec<Route<'a>>
+        routes: Vec<Route>
     }
-    impl<'a> Server<'a> {
-        pub fn new (host: &str, port: &i32) -> Server<'a> {
+    impl Server {
+        pub fn new (host: &str, port: &i32) -> Server {
             Server {
                 host: host.to_string(),
                 port: *port,
@@ -43,7 +43,7 @@ pub mod prelude {
                 });
             }
         }
-        pub fn add_route(&mut self, pattern: &str, handler: &'a Fn(&mut HttpRequest, &mut HttpResponse)) {
+        pub fn add_route(&mut self, pattern: &str, handler: Box<Fn(&mut HttpRequest, &mut HttpResponse)>) {
             let pattern = pattern.to_owned();
             if !self.routes.iter().any(|el| { el.pattern == pattern}) {
                 self.routes.push(Route {
