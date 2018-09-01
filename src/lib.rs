@@ -65,7 +65,9 @@ pub mod prelude {
         }
         fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
             let mut buffer = Vec::new();
+            println!("started reading");
             stream.read_to_end(&mut buffer).unwrap();
+            println!("finished reading");
             let mut response = HttpResponse::new();
             response.set_response_handler(Box::new(|res| {
                 println!("Sending a response...");
