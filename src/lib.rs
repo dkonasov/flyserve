@@ -47,6 +47,7 @@ pub mod prelude {
                 println!("got request");
                 let arc_cloned = Arc::clone(&arc_routes);
                 thread::spawn(|| {
+                    println!("started thread");
                     Server::handle_stream(stream.unwrap(), arc_cloned);
                 });
             }
