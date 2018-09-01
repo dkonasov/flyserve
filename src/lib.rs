@@ -67,6 +67,7 @@ pub mod prelude {
                 
             }
             response.set_response_handler(Box::new(|res| {
+                println!("Sending a response...");
                 stream.write(res.to_string().as_bytes()).unwrap();
                 stream.flush().unwrap();
             }));
