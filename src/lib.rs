@@ -9,14 +9,14 @@ pub mod prelude {
     
     struct Route {
         pattern: String,
-        handlers: Vec<Box<Fn(&mut HttpRequest, &mut HttpResponse)>>
+        handlers: Vec<fn(&mut HttpRequest, &mut HttpResponse)>
     }
 
     impl Route {
         pub fn compare(&self, path: &Path) -> Option<HashMap<String, String>> {
             return path.compare(&self.pattern);
         }
-        pub fn add_handler(&mut self, handler: Box<Fn(&mut HttpRequest, &mut HttpResponse)>) {
+        pub fn add_handler(&mut self, handler: fn(&mut HttpRequest, &mut HttpResponse)) {
             self.handlers.push(handler);
         }
     }
@@ -43,7 +43,7 @@ pub mod prelude {
                 });
             }
         }
-        pub fn add_route(&mut self, pattern: &str, handler: Box<Fn(&mut HttpRequest, &mut HttpResponse)>) {
+        pub fn add_route(&mut self, pattern: &str, handler: fn(&mut HttpRequest, &mut HttpResponse)) {
             let pattern = pattern.to_owned();
             if !self.routes.iter().any(|el| { el.pattern == pattern}) {
                 self.routes.push(Route {
@@ -56,9 +56,14 @@ pub mod prelude {
         fn handle_stream(mut stream: TcpStream) {
             let mut buffer = Vec::new();
             stream.read_to_end(&mut buffer).unwrap();
-            let response = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
-            stream.write(response.as_bytes()).unwrap();
-            stream.flush().unwrap();
+            let mut response = HttpResponse::new();
+            {
+                
+            }
+            response.set_response_handler(Box::new(|res| {
+                stream.write(res.to_string().as_bytes()).unwrap();
+                stream.flush().unwrap();
+            }));
         }
     }
 }
