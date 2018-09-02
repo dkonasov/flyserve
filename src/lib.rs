@@ -65,8 +65,16 @@ pub mod prelude {
         }
         fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
             let mut buffer = Vec::new();
+            let termintaion_token = String::from("/r/n");
+            let termination_token_seq = termintaion_token.as_bytes();
             println!("started reading");
-            stream.read_to_end(&mut buffer).unwrap();
+            while buffer.len() < termination_token_seq.len() || (&buffer[buffer.len() - termination_token_seq.len()..]) != termination_token_seq {
+                let mut chunk_buff: [u8; 512] = [0; 512];
+                let bytes_count = stream.read(&mut chunk_buff).unwrap();
+                for ind in 0..bytes_count {
+                    buffer.push(chunk_buff[ind]);
+                }
+            }
             println!("finished reading");
             let mut response = HttpResponse::new();
             response.set_response_handler(Box::new(|res| {
