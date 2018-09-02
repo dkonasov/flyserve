@@ -74,6 +74,7 @@ pub mod prelude {
                 for ind in 0..bytes_count {
                     buffer.push(chunk_buff[ind]);
                 }
+                println!("{:?}", buffer);
             }
             println!("finished reading");
             let mut response = HttpResponse::new();
