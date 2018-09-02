@@ -65,10 +65,8 @@ pub mod prelude {
         }
         fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
             let mut buffer = Vec::new();
-            let termintaion_token = String::from("/r/n");
-            let termination_token_seq = termintaion_token.as_bytes();
             println!("started reading");
-            while buffer.len() < termination_token_seq.len() || (&buffer[buffer.len() - termination_token_seq.len()..]) != termination_token_seq {
+            while buffer.len() < 4 || &buffer[buffer.len() - 4..] != [13, 10, 13, 10] {
                 let mut chunk_buff: [u8; 512] = [0; 512];
                 let bytes_count = stream.read(&mut chunk_buff).unwrap();
                 for ind in 0..bytes_count {
