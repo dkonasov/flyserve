@@ -39,22 +39,18 @@ pub mod prelude {
             }
         }
         pub fn start(&self) {
-            println!("started server");
             let addr = format!("{}:{}", self.host, self.port);
             let listener = TcpListener::bind(addr).unwrap();
             let arc_routes = Arc::new(self.routes.clone());
             for stream in listener.incoming() {
-                println!("got request");
                 let arc_cloned = Arc::clone(&arc_routes);
                 thread::spawn(|| {
-                    println!("started thread");
                     Server::handle_stream(stream.unwrap(), arc_cloned);
                 });
             }
         }
         pub fn add_route(&mut self, pattern: &str, handler: fn(&mut HttpRequest, &mut HttpResponse)) {
             let pattern = pattern.to_owned();
-            println!("added handler");
             if !self.routes.iter().any(|el| { el.pattern == pattern}) {
                 self.routes.push(Route {
                     pattern: pattern.clone(),
@@ -65,19 +61,15 @@ pub mod prelude {
         }
         fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
             let mut buffer = Vec::new();
-            println!("started reading");
             while buffer.len() < 4 || &buffer[buffer.len() - 4..] != [13, 10, 13, 10] {
                 let mut chunk_buff: [u8; 512] = [0; 512];
                 let bytes_count = stream.read(&mut chunk_buff).unwrap();
                 for ind in 0..bytes_count {
                     buffer.push(chunk_buff[ind]);
                 }
-                println!("{:?}", buffer);
             }
-            println!("finished reading");
             let mut response = HttpResponse::new();
             response.set_response_handler(Box::new(|res| {
-                println!("Sending a response...");
                 stream.write(res.to_string().as_bytes()).unwrap();
                 stream.flush().unwrap();
             }));
