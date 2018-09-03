@@ -24,42 +24,8 @@ pub mod prelude {
             self.handlers.push(handler);
         }
     }
-    
-    pub struct Server {
-        host: String,
-        port: i32,
-        routes: Vec<Route>
-    }
-    impl Server {
-        pub fn new (host: &str, port: &i32) -> Server {
-            Server {
-                host: host.to_string(),
-                port: *port,
-                routes: Vec::new()
-            }
-        }
-        pub fn start(&self) {
-            let addr = format!("{}:{}", self.host, self.port);
-            let listener = TcpListener::bind(addr).unwrap();
-            let arc_routes = Arc::new(self.routes.clone());
-            for stream in listener.incoming() {
-                let arc_cloned = Arc::clone(&arc_routes);
-                thread::spawn(|| {
-                    Server::handle_stream(stream.unwrap(), arc_cloned);
-                });
-            }
-        }
-        pub fn add_route(&mut self, pattern: &str, handler: fn(&mut HttpRequest, &mut HttpResponse)) {
-            let pattern = pattern.to_owned();
-            if !self.routes.iter().any(|el| { el.pattern == pattern}) {
-                self.routes.push(Route {
-                    pattern: pattern.clone(),
-                    handlers: Vec::new()
-                });
-            }
-            self.routes.iter_mut().find(|el| { el.pattern == pattern}).unwrap().add_handler(handler);
-        }
-        fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
+
+    fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
             let mut buffer = Vec::new();
             while buffer.len() < 4 || &buffer[buffer.len() - 4..] != [13, 10, 13, 10] {
                 let mut chunk_buff: [u8; 512] = [0; 512];
@@ -113,6 +79,41 @@ pub mod prelude {
                     response.send();
                 }
             }
+        }
+    
+    pub struct Server {
+        host: String,
+        port: i32,
+        routes: Vec<Route>
+    }
+    impl Server {
+        pub fn new (host: &str, port: &i32) -> Server {
+            Server {
+                host: host.to_string(),
+                port: *port,
+                routes: Vec::new()
+            }
+        }
+        pub fn start(&self) {
+            let addr = format!("{}:{}", self.host, self.port);
+            let listener = TcpListener::bind(addr).unwrap();
+            let arc_routes = Arc::new(self.routes.clone());
+            for stream in listener.incoming() {
+                let arc_cloned = Arc::clone(&arc_routes);
+                thread::spawn(|| {
+                    handle_stream(stream.unwrap(), arc_cloned);
+                });
+            }
+        }
+        pub fn add_route(&mut self, pattern: &str, handler: fn(&mut HttpRequest, &mut HttpResponse)) {
+            let pattern = pattern.to_owned();
+            if !self.routes.iter().any(|el| { el.pattern == pattern}) {
+                self.routes.push(Route {
+                    pattern: pattern.clone(),
+                    handlers: Vec::new()
+                });
+            }
+            self.routes.iter_mut().find(|el| { el.pattern == pattern}).unwrap().add_handler(handler);
         }
     }
 }
