@@ -43,7 +43,7 @@ fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
                                     req.params.insert(key.to_string(), value.to_string());
                                 }
                                 for handler in route.handlers.iter() {
-                                    if !response_sent.borrow().deref() {
+                                    if response_sent.borrow().deref().to_owned() {
                                         break;
                                     }
                                     handler(&mut req, &mut response);
