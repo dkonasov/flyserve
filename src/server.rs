@@ -7,9 +7,11 @@ use std::net::{TcpStream, TcpListener};
 use std::sync::Arc;
 use std::ops::Deref;
 use std::thread;
+use std::cell::RefCell;
 
 fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
         let mut buffer = Vec::new();
+        let response_sent = RefCell::new(false);
         while buffer.len() < 4 || &buffer[buffer.len() - 4..] != [13, 10, 13, 10] {
             let mut chunk_buff: [u8; 512] = [0; 512];
             let bytes_count = stream.read(&mut chunk_buff).unwrap();
@@ -19,8 +21,11 @@ fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
         }
         let mut response = flyserve_api::HttpResponse::new();
         response.set_response_handler(Box::new(|res| {
-            stream.write(res.to_string().as_bytes()).unwrap();
-            stream.flush().unwrap();
+            if !response_sent.borrow().deref() {
+                stream.write(res.to_string().as_bytes()).unwrap();
+                stream.flush().unwrap();
+                response_sent.replace(true);
+            }
         }));
         match String::from_utf8(buffer) {
             Ok(result) => {
@@ -38,6 +43,7 @@ fn handle_stream(mut stream: TcpStream, routes: Arc<Vec<Route>>) {
                                     req.params.insert(key.to_string(), value.to_string());
                                 }
                                 for handler in route.handlers.iter() {
+                                    if !response_sent.borrow().deref() {}
                                     handler(&mut req, &mut response);
                                 }
                             }
